@@ -23,7 +23,8 @@ const client = new MongoClient(uri, {
 });
 
 const userCollection=client.db('BuildingManagement').collection('users')
-
+const apartmentCollection=client.db('BuildingManagement').collection('apartment')
+//post users details
 app.post('/users',async(req,res)=>{
   let result="Alreary added this user";
   const users=req.body;
@@ -37,7 +38,12 @@ app.post('/users',async(req,res)=>{
    res.send(result);
 })
 
-
+//get apartmentdata
+ app.get('/apartment',async(req,res)=>{
+  const result=await apartmentCollection.find().toArray()
+  res.send(result)
+  console.log(result)
+ })
 
 
 
