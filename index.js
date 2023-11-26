@@ -13,13 +13,13 @@ app.use(express.json())
 app.use(cors())
 //middleware
 const varifyToken = (req, res, next) => {
-  console.log("varify token: ", req.headers)
-  console.log("varify token: ", req.headers.authorization)
+  // console.log("varify token: ", req.headers)
+  // console.log("varify token: ", req.headers.authorization)
   if (!req.headers.authorization) {
     return res.status(401).send({ messages: 'forbiden assess' })
   }
   const token = req.headers.authorization.split(' ')[1];
-  console.log(token)
+  // console.log(token)
   // console.log(token)
   jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, function (err, decoded) {
     if (err) {
@@ -83,32 +83,65 @@ app.post('/users', async (req, res) => {
 //get users details
 app.get('/users', async (req, res) => {
   const findUser = await userCollection.find().toArray();
-  console.log(findUser);
+  // console.log(findUser);
   res.send(findUser);
 })
 //get agreements request
 app.get('/agreementsRequest', varifyToken, async (req, res) => {
   const agreementsUser = await ageementCollection.find().toArray();
-  console.log(agreementsUser);
+  // console.log(agreementsUser);
   res.send(agreementsUser);
 })
 //update agreements request
-app.patch('/agreementsRequest/:id', varifyToken, async (req, res) => {
-  const id = req.params.id;
-  console.log(id)
+app.patch('/agreementsRequest', varifyToken, async (req, res) => {
+  const id = req.query.id;
+  const useremail = req.query.email;
+  // console.log(id,email)
   const filter = { _id: new ObjectId(id) }
   console.log(filter)
 
   const updateDoc = {
     $set: {
-      status: 'member'
+      status: 'checked'
     },
   };
   // const result =await ageementCollection.findOne(filter)
   const result = await ageementCollection.updateOne(filter, updateDoc);
-  console.log(result)
+
+  if (result.modifiedCount) {
+    const query = { email: useremail }
+    const options = { upsert: true };
+    const updateDoc = {
+      $set: {
+        role: 'member'
+      },
+    };
+    const userresult = await userCollection.updateOne(query, updateDoc, options);
+    console.log('userRole', userresult)
+    res.send({ acceptStatus: result, userStasus: userresult })
+  }
+  // console.log(result)
+})
+//handle reject request
+app.patch('/agreementsRejectRequest', varifyToken, async (req, res) => {
+  const id = req.query.id;
+  // console.log(id,email)
+  const filter = { _id: new ObjectId(id) }
+  console.log(filter)
+
+  const updateDoc = {
+    $set: {
+      status: 'checked'
+    },
+  };
+  // const result =await ageementCollection.findOne(filter)
+  const result = await ageementCollection.updateOne(filter, updateDoc);
+
+  console.log("update user:", result)
   res.send(result)
 })
+
+
 //get apartmentdata
 app.get('/apartment', async (req, res) => {
   const result = await apartmentCollection.find().toArray()
