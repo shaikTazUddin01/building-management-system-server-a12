@@ -2,7 +2,7 @@ require('dotenv').config()
 const express = require('express')
 const cors = require('cors');
 var jwt = require('jsonwebtoken');
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const app = express()
 
 const port = process.env.PORT || 5000
@@ -87,12 +87,28 @@ app.get('/users', async (req, res) => {
   res.send(findUser);
 })
 //get agreements request
-app.get('/agreementsRequest',varifyToken, async (req, res) => {
+app.get('/agreementsRequest', varifyToken, async (req, res) => {
   const agreementsUser = await ageementCollection.find().toArray();
   console.log(agreementsUser);
   res.send(agreementsUser);
 })
+//update agreements request
+app.patch('/agreementsRequest/:id', varifyToken, async (req, res) => {
+  const id = req.params.id;
+  console.log(id)
+  const filter = { _id: new ObjectId(id) }
+  console.log(filter)
 
+  const updateDoc = {
+    $set: {
+      status: 'member'
+    },
+  };
+  // const result =await ageementCollection.findOne(filter)
+  const result = await ageementCollection.updateOne(filter, updateDoc);
+  console.log(result)
+  res.send(result)
+})
 //get apartmentdata
 app.get('/apartment', async (req, res) => {
   const result = await apartmentCollection.find().toArray()
