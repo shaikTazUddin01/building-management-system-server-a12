@@ -87,6 +87,27 @@ app.get('/users', async (req, res) => {
   // console.log(findUser);
   res.send(findUser);
 })
+//check admin
+app.get('/user/admin/:email', varifyToken, async (req, res) => {
+  const email = req.params.email;
+  // console.log(email)
+  // console.log(req.decoded.email)
+  if (email !== req.decoded.email) {
+    return res.status(403).send({ massages: 'unauthorized access' })
+  }
+  const query = { email: email }
+
+  const user = await userCollection.findOne(query);
+  let admin = false;
+  // console.log(user)
+  if (user) {
+    admin = user?.role === 'admin';
+  }
+  res.send({ admin });
+  // console.log({admin})
+})
+
+
 //get agreements request
 app.get('/agreementsRequest', varifyToken, async (req, res) => {
   const agreementsUser = await ageementCollection.find().toArray();
