@@ -61,12 +61,19 @@ const userCollection = client.db('BuildingManagement').collection('users')
 const apartmentCollection = client.db('BuildingManagement').collection('apartment')
 const ageementCollection = client.db('BuildingManagement').collection('ageements')
 const announcementCollection = client.db('BuildingManagement').collection('announcements')
+const ageementAcceptCollection = client.db('BuildingManagement').collection('Acceptapartment')
 //jwt 
 app.post('/jwt', async (req, res) => {
   const user = req.body;
   const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '30d' })
 
   res.send({ token })
+})
+//announcement Collection
+app.get('/announcements',varifyToken,async(req,res)=>{
+  const result=await announcementCollection.find().toArray()
+  res.send(result)
+  console.log(result)
 })
 //post users details
 app.post('/users', async (req, res) => {
@@ -98,13 +105,19 @@ app.get('/user/admin/:email', varifyToken, async (req, res) => {
   const query = { email: email }
 
   const user = await userCollection.findOne(query);
-  let admin = false;
+  let role = false;
+  // let member = false;
   // console.log(user)
-  if (user) {
-    admin = user?.role === 'admin';
+  if (user?.role === 'admin') {
+    role = 'admin';
+
+  } else if (user?.role === 'member') {
+    role = 'member'
+  } else {
+    role = 'user'
   }
-  res.send({ admin });
-  // console.log({admin})
+  res.send({ role });
+  console.log({ role })
 })
 
 
@@ -121,14 +134,20 @@ app.patch('/agreementsRequest', varifyToken, async (req, res) => {
   // console.log(id,email)
   const filter = { _id: new ObjectId(id) }
   console.log(filter)
-
+  const currentDate = new Date()
+  const formattedDate = currentDate.toLocaleDateString('en-US', {
+    month: '2-digit',
+    day: '2-digit',
+    year: 'numeric',
+  });
+  const options = { upsert: true };
   const updateDoc = {
     $set: {
-      status: 'checked'
+      status: 'checked',
     },
   };
   // const result =await ageementCollection.findOne(filter)
-  const result = await ageementCollection.updateOne(filter, updateDoc);
+  const result = await ageementCollection.updateOne(filter, updateDoc, options);
 
   if (result.modifiedCount) {
     const query = { email: useremail }
@@ -139,8 +158,27 @@ app.patch('/agreementsRequest', varifyToken, async (req, res) => {
       },
     };
     const userresult = await userCollection.updateOne(query, updateDoc, options);
-    console.log('userRole', userresult)
-    res.send({ acceptStatus: result, userStasus: userresult })
+    if (userresult) {
+      const acceptRequest = await ageementCollection.findOne(filter)
+
+
+      const requestinfo = {
+         requetsId:acceptRequest?._id,
+         userName:acceptRequest?.userName,
+         userEmail:acceptRequest?.userEmail,
+         floorNo:acceptRequest?.floorNo,
+         apartmentNo:acceptRequest?.apartmentNo,
+         blockName:acceptRequest?.blockName,
+         rent:acceptRequest?.rent,
+         requestDate:acceptRequest?.requestDate,
+         RoomNo:acceptRequest?.roomNo,
+        // acceptRequest,
+        AcceptedDate: formattedDate,
+      }
+      const insertData = await ageementAcceptCollection.insertOne(requestinfo)
+      console.log('userRole', userresult)
+      res.send({ acceptStatus: result, userStasus: userresult, insertData })
+    }
   }
   // console.log(result)
 })
@@ -170,14 +208,14 @@ app.patch('/userRole', varifyToken, async (req, res) => {
   const filter = { _id: new ObjectId(id) }
   console.log(filter)
   const options = { upsert: true };
-    const updateDoc = {
-      $set: {
-        role: 'user'
-      },
-    };
-    const userresult = await userCollection.updateOne(filter, updateDoc, options);
-    res.send(userresult)
-    console.log(userresult)
+  const updateDoc = {
+    $set: {
+      role: 'user'
+    },
+  };
+  const userresult = await userCollection.updateOne(filter, updateDoc, options);
+  res.send(userresult)
+  console.log(userresult)
 
 })
 //get apartmentdata
@@ -193,10 +231,20 @@ app.post('/ageement', async (req, res) => {
   console.log(result)
   res.send(result)
 })
+//find user Ageement of specific user 
+app.get('/ageementuser/:email', varifyToken, async (req, res) => {
+  const email = req.params.email;
+  const query = { userEmail: email }
+  console.log(email)
+  console.log(query)
+  const result = await ageementAcceptCollection.findOne(query)
+  console.log(result)
+  res.send(result)
+})
 //make Announcement
-app.post('/makeannouncement',varifyToken,async(req,res)=>{
-  const announcementInfo=req.body
-  const result=await announcementCollection.insertOne(announcementInfo)
+app.post('/makeannouncement', varifyToken, async (req, res) => {
+  const announcementInfo = req.body
+  const result = await announcementCollection.insertOne(announcementInfo)
   res.send(result)
   console.log(result)
 })
