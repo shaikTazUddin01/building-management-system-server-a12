@@ -60,6 +60,7 @@ const client = new MongoClient(uri, {
 const userCollection = client.db('BuildingManagement').collection('users')
 const apartmentCollection = client.db('BuildingManagement').collection('apartment')
 const ageementCollection = client.db('BuildingManagement').collection('ageements')
+const announcementCollection = client.db('BuildingManagement').collection('announcements')
 //jwt 
 app.post('/jwt', async (req, res) => {
   const user = req.body;
@@ -141,7 +142,23 @@ app.patch('/agreementsRejectRequest', varifyToken, async (req, res) => {
   res.send(result)
 })
 
+//manage member
+app.patch('/userRole', varifyToken, async (req, res) => {
+  const id = req.query.id;
+  console.log(id)
+  const filter = { _id: new ObjectId(id) }
+  console.log(filter)
+  const options = { upsert: true };
+    const updateDoc = {
+      $set: {
+        role: 'user'
+      },
+    };
+    const userresult = await userCollection.updateOne(filter, updateDoc, options);
+    res.send(userresult)
+    console.log(userresult)
 
+})
 //get apartmentdata
 app.get('/apartment', async (req, res) => {
   const result = await apartmentCollection.find().toArray()
@@ -155,7 +172,13 @@ app.post('/ageement', async (req, res) => {
   console.log(result)
   res.send(result)
 })
-
+//make Announcement
+app.post('/makeannouncement',varifyToken,async(req,res)=>{
+  const announcementInfo=req.body
+  const result=await announcementCollection.insertOne(announcementInfo)
+  res.send(result)
+  console.log(result)
+})
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
