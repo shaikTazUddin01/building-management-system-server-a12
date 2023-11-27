@@ -62,6 +62,7 @@ const apartmentCollection = client.db('BuildingManagement').collection('apartmen
 const ageementCollection = client.db('BuildingManagement').collection('ageements')
 const announcementCollection = client.db('BuildingManagement').collection('announcements')
 const ageementAcceptCollection = client.db('BuildingManagement').collection('Acceptapartment')
+const cuponsCollection = client.db('BuildingManagement').collection('cupons')
 //jwt 
 app.post('/jwt', async (req, res) => {
   const user = req.body;
@@ -69,9 +70,17 @@ app.post('/jwt', async (req, res) => {
 
   res.send({ token })
 })
+//cupon collection
+app.post('/cupons',varifyToken,async (req, res) => {
+  const cupon = req.body;
+  console.log('cupon',cupon)
+  const result = await cuponsCollection.insertOne(cupon);
+  res.send(result)
+  console.log(result)
+})
 //announcement Collection
-app.get('/announcements',varifyToken,async(req,res)=>{
-  const result=await announcementCollection.find().toArray()
+app.get('/announcements', async (req, res) => {
+  const result = await announcementCollection.find().toArray()
   res.send(result)
   console.log(result)
 })
@@ -163,15 +172,15 @@ app.patch('/agreementsRequest', varifyToken, async (req, res) => {
 
 
       const requestinfo = {
-         requetsId:acceptRequest?._id,
-         userName:acceptRequest?.userName,
-         userEmail:acceptRequest?.userEmail,
-         floorNo:acceptRequest?.floorNo,
-         apartmentNo:acceptRequest?.apartmentNo,
-         blockName:acceptRequest?.blockName,
-         rent:acceptRequest?.rent,
-         requestDate:acceptRequest?.requestDate,
-         RoomNo:acceptRequest?.roomNo,
+        requetsId: acceptRequest?._id,
+        userName: acceptRequest?.userName,
+        userEmail: acceptRequest?.userEmail,
+        floorNo: acceptRequest?.floorNo,
+        apartmentNo: acceptRequest?.apartmentNo,
+        blockName: acceptRequest?.blockName,
+        rent: acceptRequest?.rent,
+        requestDate: acceptRequest?.requestDate,
+        RoomNo: acceptRequest?.roomNo,
         // acceptRequest,
         AcceptedDate: formattedDate,
       }
