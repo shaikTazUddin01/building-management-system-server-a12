@@ -70,7 +70,15 @@ app.post('/jwt', async (req, res) => {
 
   res.send({ token })
 })
+
 //cupon collection
+//get cupon
+app.get('/cupons',varifyToken,async(req,res)=>{
+  const result=await cuponsCollection.find().toArray()
+  res.send(result);
+  // console.log(result)git
+})
+//post cupon
 app.post('/cupons',varifyToken,async (req, res) => {
   const cupon = req.body;
   console.log('cupon',cupon)
