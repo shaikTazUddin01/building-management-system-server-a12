@@ -86,8 +86,16 @@ app.get('/paymentHistory', varifyToken, async (req, res) => {
   res.send(result)
 })
 //cupon collection
+//delete cupons
+app.delete('/cupons/:id',async(req,res)=>{
+  const id=req.params.id;
+  const query={_id:new ObjectId(id)}
+  const result=await cuponsCollection.deleteOne(query)
+  res.send(result)
+})
+
 //get cupon
-app.get('/cupons', varifyToken, async (req, res) => {
+app.get('/cupons', async (req, res) => {
   const result = await cuponsCollection.find().toArray()
   res.send(result);
   // console.log(result)git
