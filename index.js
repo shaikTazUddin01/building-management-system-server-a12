@@ -72,7 +72,12 @@ app.post('/jwt', async (req, res) => {
   res.send({ token })
 })
 //payment history
-app.get
+app.post('/paymentHistory',async(req,res)=>{
+  const history=req.body
+  const result=await paymentCollection.insertOne(history)
+  console.log(result)
+  res.send(result)
+})
 //cupon collection
 //get cupon
 app.get('/cupons', varifyToken, async (req, res) => {
