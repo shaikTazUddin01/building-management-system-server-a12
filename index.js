@@ -249,6 +249,12 @@ app.post('/ageement', async (req, res) => {
   res.send(result)
 })
 //find user Ageement of specific user 
+app.get('/bookedRoom', varifyToken, async (req, res) => {
+  
+  const result = await ageementAcceptCollection.find().toArray()
+  console.log("booking Room:",result)
+  res.send(result)
+})
 app.get('/ageementuser/:email', varifyToken, async (req, res) => {
   const email = req.params.email;
   const query = { userEmail: email }
