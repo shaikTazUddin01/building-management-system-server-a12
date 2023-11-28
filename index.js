@@ -72,10 +72,17 @@ app.post('/jwt', async (req, res) => {
   res.send({ token })
 })
 //payment history
-app.post('/paymentHistory',async(req,res)=>{
-  const history=req.body
-  const result=await paymentCollection.insertOne(history)
+app.post('/paymentHistory', async (req, res) => {
+  const history = req.body
+  const result = await paymentCollection.insertOne(history)
   console.log(result)
+  res.send(result)
+})
+app.get('/paymentHistory', varifyToken, async (req, res) => {
+  const email = req?.query?.email
+  const query = { userEmail: email }
+  // console.log("email",email)
+  const result = await paymentCollection.find(query).toArray()
   res.send(result)
 })
 //cupon collection
@@ -97,7 +104,7 @@ app.post('/cupons', varifyToken, async (req, res) => {
 app.post("/create-payment-intent", async (req, res) => {
   const { price } = req.body;
   const amount = parseInt(price * 100)
-console.log(amount)
+  console.log(amount)
   // Create a PaymentIntent with the order amount and currency
   const paymentIntent = await stripe.paymentIntents.create({
     amount: amount,
