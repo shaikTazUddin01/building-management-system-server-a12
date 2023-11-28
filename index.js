@@ -86,11 +86,28 @@ app.get('/paymentHistory', varifyToken, async (req, res) => {
   res.send(result)
 })
 //cupon collection
+//update cupons
+app.put('/cupons/:id', async (req, res) => {
+  const id = req.params
+  const couponsInFo = req.body
+  const filter = { _id: new ObjectId(id) }
+  const updateDoc = {
+    $set: {
+      cuponCode: couponsInFo.cuponCode,
+      discount: couponsInFo.discount,
+      description: couponsInFo.description
+    },
+  };
+  const result = await cuponsCollection.updateOne(filter, updateDoc);
+
+  console.log(result)
+  res.send(result)
+})
 //delete cupons
-app.delete('/cupons/:id',async(req,res)=>{
-  const id=req.params.id;
-  const query={_id:new ObjectId(id)}
-  const result=await cuponsCollection.deleteOne(query)
+app.delete('/cupons/:id', async (req, res) => {
+  const id = req.params.id;
+  const query = { _id: new ObjectId(id) }
+  const result = await cuponsCollection.deleteOne(query)
   res.send(result)
 })
 
