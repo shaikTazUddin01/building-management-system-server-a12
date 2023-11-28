@@ -4,7 +4,7 @@ const cors = require('cors');
 var jwt = require('jsonwebtoken');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const app = express()
-
+const stripe = require('stripe')(process.env.Stripe_Key)
 const port = process.env.PORT || 5000
 
 // console.log(process.env.ACCESS_TOKEN_SECRET)
@@ -63,6 +63,7 @@ const ageementCollection = client.db('BuildingManagement').collection('ageements
 const announcementCollection = client.db('BuildingManagement').collection('announcements')
 const ageementAcceptCollection = client.db('BuildingManagement').collection('Acceptapartment')
 const cuponsCollection = client.db('BuildingManagement').collection('cupons')
+const paymentCollection = client.db('BuildingManagement').collection('paymentHistory')
 //jwt 
 app.post('/jwt', async (req, res) => {
   const user = req.body;
@@ -70,27 +71,47 @@ app.post('/jwt', async (req, res) => {
 
   res.send({ token })
 })
-
+//payment history
+app.get
 //cupon collection
 //get cupon
-app.get('/cupons',varifyToken,async(req,res)=>{
-  const result=await cuponsCollection.find().toArray()
+app.get('/cupons', varifyToken, async (req, res) => {
+  const result = await cuponsCollection.find().toArray()
   res.send(result);
   // console.log(result)git
 })
 //post cupon
-app.post('/cupons',varifyToken,async (req, res) => {
+app.post('/cupons', varifyToken, async (req, res) => {
   const cupon = req.body;
-  console.log('cupon',cupon)
+  console.log('cupon', cupon)
   const result = await cuponsCollection.insertOne(cupon);
   res.send(result)
-  console.log(result)
+  // console.log(result)
 })
+//payment intent
+app.post("/create-payment-intent", async (req, res) => {
+  const { price } = req.body;
+  const amount = parseInt(price * 100)
+console.log(amount)
+  // Create a PaymentIntent with the order amount and currency
+  const paymentIntent = await stripe.paymentIntents.create({
+    amount: amount,
+    currency: "usd",
+    // In the latest version of the API, specifying the `automatic_payment_methods` parameter is optional because Stripe enables its functionality by default.
+    payment_method_types: [
+      "card"
+    ],
+  });
+
+  res.send({
+    clientSecret: paymentIntent.client_secret,
+  });
+});
 //announcement Collection
 app.get('/announcements', async (req, res) => {
   const result = await announcementCollection.find().toArray()
   res.send(result)
-  console.log(result)
+  // console.log(result)
 })
 //post users details
 app.post('/users', async (req, res) => {
@@ -134,7 +155,7 @@ app.get('/user/admin/:email', varifyToken, async (req, res) => {
     role = 'user'
   }
   res.send({ role });
-  console.log({ role })
+  // console.log({ role })
 })
 
 
@@ -193,7 +214,7 @@ app.patch('/agreementsRequest', varifyToken, async (req, res) => {
         AcceptedDate: formattedDate,
       }
       const insertData = await ageementAcceptCollection.insertOne(requestinfo)
-      console.log('userRole', userresult)
+      // console.log('userRole', userresult)
       res.send({ acceptStatus: result, userStasus: userresult, insertData })
     }
   }
@@ -204,7 +225,7 @@ app.patch('/agreementsRejectRequest', varifyToken, async (req, res) => {
   const id = req.query.id;
   // console.log(id,email)
   const filter = { _id: new ObjectId(id) }
-  console.log(filter)
+  // console.log(filter)
 
   const updateDoc = {
     $set: {
@@ -232,7 +253,7 @@ app.patch('/userRole', varifyToken, async (req, res) => {
   };
   const userresult = await userCollection.updateOne(filter, updateDoc, options);
   res.send(userresult)
-  console.log(userresult)
+  // console.log(userresult)
 
 })
 //get apartmentdata
@@ -245,23 +266,23 @@ app.get('/apartment', async (req, res) => {
 app.post('/ageement', async (req, res) => {
   const ageementData = req.body;
   const result = await ageementCollection.insertOne(ageementData)
-  console.log(result)
+  // console.log(result)
   res.send(result)
 })
 //find user Ageement of specific user 
 app.get('/bookedRoom', varifyToken, async (req, res) => {
-  
+
   const result = await ageementAcceptCollection.find().toArray()
-  console.log("booking Room:",result)
+  // console.log("booking Room:", result)
   res.send(result)
 })
 app.get('/ageementuser/:email', varifyToken, async (req, res) => {
   const email = req.params.email;
   const query = { userEmail: email }
-  console.log(email)
-  console.log(query)
+  // console.log(email)
+  // console.log(query)
   const result = await ageementAcceptCollection.findOne(query)
-  console.log(result)
+  // console.log(result)
   res.send(result)
 })
 //make Announcement
@@ -269,7 +290,7 @@ app.post('/makeannouncement', varifyToken, async (req, res) => {
   const announcementInfo = req.body
   const result = await announcementCollection.insertOne(announcementInfo)
   res.send(result)
-  console.log(result)
+  // console.log(result)
 })
 async function run() {
   try {
